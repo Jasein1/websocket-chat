@@ -3,374 +3,491 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>CSC 423 | Real-Time TCP Chat Hub</title>
+  <title>Discord | CSC 423 Network Hub</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=gg+sans:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-main: #090d16;
-      --bg-surface: #111827;
-      --bg-panel: #1e293b;
-      --bg-hover: #334155;
-      --accent: #6366f1;
-      --accent-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --border-color: rgba(255, 255, 255, 0.08);
+      --discord-darkest: #1e1f22;
+      --discord-sidebar: #2b2d31;
+      --discord-chat: #313338;
+      --discord-chat-hover: #2e3035;
+      --discord-input: #383a40;
+      --discord-blurple: #5865f2;
+      --discord-blurple-hover: #4752c4;
+      --discord-green: #23a55a;
+      --discord-red: #f23f43;
+      --discord-text: #dbdee1;
+      --discord-text-muted: #949ba4;
+      --discord-header: #f2f3f5;
+      --discord-border: rgba(255, 255, 255, 0.06);
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
-    body { background-color: var(--bg-main); color: var(--text-main); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 1rem; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'gg sans', 'Plus Jakarta Sans', sans-serif; }
+    body { background-color: var(--discord-darkest); color: var(--discord-text); display: flex; height: 100vh; overflow: hidden; }
 
+    /* Modal Login */
     #loginOverlay {
-      position: fixed; inset: 0; background: rgba(9, 13, 22, 0.92);
-      backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 50;
+      position: fixed; inset: 0; background: rgba(0, 0, 0, 0.82);
+      backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; z-index: 100;
     }
-    .login-card {
-      background: var(--bg-surface); border: 1px solid var(--border-color);
-      padding: 2.5rem 2rem; border-radius: 16px; width: 90%; max-width: 380px; text-align: center;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+    .discord-auth-card {
+      background: var(--discord-sidebar); border-radius: 8px; padding: 2.2rem;
+      width: 90%; max-width: 420px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.6);
     }
-    .login-card h2 { font-size: 1.5rem; margin-bottom: 0.5rem; }
-    .login-card p { color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1.5rem; }
-    .login-card input {
-      width: 100%; padding: 0.85rem 1rem; background: var(--bg-panel); border: 1px solid var(--border-color);
-      border-radius: 10px; color: #fff; font-size: 0.95rem; margin-bottom: 1rem; outline: none;
+    .discord-auth-card h2 { color: var(--discord-header); font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .discord-auth-card p { color: var(--discord-text-muted); font-size: 0.9rem; margin-bottom: 1.5rem; }
+    .discord-input-field {
+      width: 100%; padding: 0.75rem 1rem; background: var(--discord-darkest); border: 1px solid var(--discord-border);
+      border-radius: 4px; color: #fff; font-size: 0.95rem; margin-bottom: 1.2rem; outline: none; transition: border-color 0.2s;
     }
-    .login-card input:focus { border-color: var(--accent); }
-    .login-card button {
-      width: 100%; padding: 0.85rem; background: var(--accent-gradient); border: none; border-radius: 10px;
-      color: #fff; font-size: 0.95rem; font-weight: 600; cursor: pointer;
+    .discord-input-field:focus { border-color: var(--discord-blurple); }
+    .discord-btn {
+      width: 100%; padding: 0.8rem; background: var(--discord-blurple); border: none; border-radius: 4px;
+      color: #fff; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: background 0.15s;
+    }
+    .discord-btn:hover { background: var(--discord-blurple-hover); }
+
+    /* App Shell */
+    .discord-app { display: flex; width: 100vw; height: 100vh; }
+
+    /* 1. Leftmost Server Rail */
+    .server-rail {
+      width: 72px; background: var(--discord-darkest); display: flex; flex-direction: column;
+      align-items: center; padding: 0.75rem 0; gap: 0.6rem; border-right: 1px solid var(--discord-border);
+    }
+    .server-icon {
+      width: 48px; height: 48px; border-radius: 24px; background: var(--discord-sidebar);
+      display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--discord-text);
+      font-weight: 700; font-size: 1.1rem; transition: all 0.2s; position: relative;
+    }
+    .server-icon:hover, .server-icon.active { border-radius: 16px; background: var(--discord-blurple); color: #fff; }
+    .server-icon.active::before {
+      content: ''; position: absolute; left: -12px; width: 8px; height: 38px;
+      background: #fff; border-radius: 0 4px 4px 0;
+    }
+    .rail-separator { width: 32px; height: 2px; background: var(--discord-border); margin: 0.2rem 0; }
+
+    /* 2. Channel & DM Navigation Sidebar */
+    .discord-sidebar {
+      width: 240px; background: var(--discord-sidebar); display: flex; flex-direction: column;
+    }
+    .sidebar-header {
+      height: 48px; padding: 0 1rem; display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid var(--discord-darkest); box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+      font-weight: 700; font-size: 0.95rem; color: var(--discord-header);
+    }
+    .channels-scroll { flex: 1; overflow-y: auto; padding: 0.75rem 0.5rem; display: flex; flex-direction: column; gap: 1rem; }
+    .category-title {
+      font-size: 0.72rem; text-transform: uppercase; font-weight: 700; color: var(--discord-text-muted);
+      letter-spacing: 0.05em; padding: 0.2rem 0.5rem; display: flex; justify-content: space-between; align-items: center;
+    }
+    .channel-list { list-style: none; display: flex; flex-direction: column; gap: 2px; }
+    .channel-item {
+      display: flex; align-items: center; justify-content: space-between; padding: 0.45rem 0.6rem;
+      border-radius: 4px; color: var(--discord-text-muted); cursor: pointer; font-size: 0.92rem; font-weight: 500;
+      transition: background 0.15s, color 0.15s;
+    }
+    .channel-item:hover { background: rgba(255,255,255,0.04); color: var(--discord-text); }
+    .channel-item.active { background: rgba(255,255,255,0.07); color: #fff; }
+    .channel-left { display: flex; align-items: center; gap: 0.5rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .channel-prefix { font-size: 1.1rem; color: var(--discord-text-muted); font-weight: 400; }
+
+    /* Notification Badge (Discord Red Circle) */
+    .notif-badge {
+      background: var(--discord-red); color: #fff; font-size: 0.72rem; font-weight: 700;
+      min-width: 18px; height: 18px; border-radius: 9px; padding: 0 5px;
+      display: inline-flex; align-items: center; justify-content: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.4);
     }
 
-    .app-container {
-      width: 100%; max-width: 1020px; height: 90vh; background: var(--bg-surface);
-      border: 1px solid var(--border-color); border-radius: 20px; display: flex; flex-direction: column;
-      overflow: hidden; box-shadow: 0 25px 60px rgba(0,0,0,0.7);
+    /* User Profile Bar at Sidebar Bottom */
+    .user-footer {
+      height: 52px; background: #232428; padding: 0 0.6rem; display: flex; align-items: center; justify-content: space-between;
     }
-
-    .chat-header {
-      padding: 1rem 1.5rem; background: rgba(17, 24, 39, 0.9);
-      border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;
-    }
-    .brand-title { display: flex; align-items: center; gap: 0.75rem; }
-    .brand-logo {
-      width: 36px; height: 36px; background: var(--accent-gradient);
-      border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 700;
-    }
-    .status-badge {
-      display: flex; align-items: center; gap: 0.45rem; font-size: 0.78rem; font-weight: 600;
-      padding: 0.35rem 0.75rem; border-radius: 999px;
-    }
-    .status-badge.live { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
-    .status-badge.offline { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
-    .status-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
-
-    .chat-body { display: flex; flex: 1; overflow: hidden; }
-
-    .chat-sidebar {
-      width: 250px; background: rgba(15, 23, 42, 0.6); border-right: 1px solid var(--border-color);
-      padding: 1.25rem 1rem; display: flex; flex-direction: column; gap: 1.2rem;
-    }
-    .sidebar-section-title {
-      font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em;
-      color: var(--text-muted); font-weight: 700; margin-bottom: 0.4rem;
-    }
-    .nav-list { list-style: none; display: flex; flex-direction: column; gap: 0.35rem; }
-    .nav-item {
-      display: flex; align-items: center; gap: 0.6rem; padding: 0.55rem 0.75rem;
-      border-radius: 8px; font-size: 0.85rem; cursor: pointer; transition: background 0.15s;
-    }
-    .nav-item:hover { background: rgba(255, 255, 255, 0.05); }
-    .nav-item.active { background: var(--accent); color: #fff; font-weight: 600; }
-    .nav-item.active .avatar { background: #fff; color: var(--accent); }
-
+    .profile-info { display: flex; align-items: center; gap: 0.5rem; overflow: hidden; }
+    .user-avatar-wrap { position: relative; }
     .avatar {
-      width: 26px; height: 26px; border-radius: 50%; background: var(--bg-hover);
-      display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 700;
+      width: 32px; height: 32px; border-radius: 50%; background: var(--discord-blurple);
+      display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 0.8rem;
+    }
+    .status-dot-mini {
+      position: absolute; bottom: -2px; right: -2px; width: 10px; height: 10px;
+      border-radius: 50%; background: var(--discord-green); border: 2px solid #232428;
+    }
+    .profile-names { display: flex; flex-direction: column; line-height: 1.2; }
+    .profile-names .name { font-size: 0.84rem; font-weight: 600; color: var(--discord-header); }
+    .profile-names .tag { font-size: 0.7rem; color: var(--discord-text-muted); }
+
+    /* 3. Main Chat Viewport */
+    .discord-main { flex: 1; display: flex; flex-direction: column; background: var(--discord-chat); position: relative; }
+    .chat-topbar {
+      height: 48px; border-bottom: 1px solid var(--discord-darkest); padding: 0 1rem;
+      display: flex; align-items: center; justify-content: space-between; box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    }
+    .topbar-info { display: flex; align-items: center; gap: 0.5rem; font-weight: 700; color: var(--discord-header); font-size: 0.95rem; }
+    .socket-status-pill {
+      font-size: 0.75rem; font-weight: 600; padding: 0.25rem 0.6rem; border-radius: 12px;
+      background: rgba(35, 165, 90, 0.15); color: var(--discord-green); display: flex; align-items: center; gap: 0.35rem;
+    }
+    .socket-status-pill.offline { background: rgba(242, 63, 67, 0.15); color: var(--discord-red); }
+
+    /* Messages Stream */
+    .chat-feed { flex: 1; overflow-y: auto; padding: 1.2rem 1rem; display: flex; flex-direction: column; gap: 1rem; }
+    .msg-group {
+      display: flex; gap: 1rem; padding: 0.25rem 0.5rem; border-radius: 4px; transition: background 0.1s;
+    }
+    .msg-group:hover { background: var(--discord-chat-hover); }
+    .msg-avatar {
+      width: 40px; height: 40px; border-radius: 50%; background: var(--discord-blurple);
+      display: flex; align-items: center; justify-content: center; font-weight: 700; color: #fff; flex-shrink: 0;
+    }
+    .msg-content-col { display: flex; flex-direction: column; gap: 0.25rem; flex: 1; }
+    .msg-meta { display: flex; align-items: baseline; gap: 0.5rem; }
+    .author-name { font-size: 0.92rem; font-weight: 600; color: var(--discord-header); }
+    .timestamp { font-size: 0.72rem; color: var(--discord-text-muted); }
+    .msg-text { font-size: 0.94rem; color: var(--discord-text); line-height: 1.45; word-break: break-word; }
+    .msg-gif-wrap { border-radius: 8px; overflow: hidden; max-width: 280px; margin-top: 0.3rem; }
+    .msg-gif-wrap img { width: 100%; height: auto; display: block; border-radius: 8px; }
+
+    /* System Join / Leave Cards */
+    .system-event-row {
+      display: flex; align-items: center; gap: 0.6rem; font-size: 0.88rem;
+      padding: 0.3rem 0.5rem; color: var(--discord-text-muted);
+    }
+    .system-event-row.join { color: var(--discord-green); }
+    .system-event-row.leave { color: var(--discord-red); }
+
+    /* Typing Bar */
+    .typing-status-row {
+      height: 22px; padding: 0 1rem; font-size: 0.75rem; color: var(--discord-text-muted);
+      font-weight: 600; display: flex; align-items: center;
     }
 
-    .chat-main { flex: 1; display: flex; flex-direction: column; background: #0c121e; position: relative; }
-    .current-chat-banner {
-      padding: 0.75rem 1.5rem; background: rgba(255,255,255,0.02);
-      border-bottom: 1px solid var(--border-color); font-size: 0.85rem; color: var(--text-muted);
+    /* Composer Dock */
+    .composer-wrapper { padding: 0 1rem 1.4rem; position: relative; }
+    .composer-inner {
+      background: var(--discord-input); border-radius: 8px; display: flex; align-items: center;
+      padding: 0.2rem 0.75rem; gap: 0.5rem;
     }
-    .current-chat-banner strong { color: var(--text-main); }
+    .composer-input {
+      flex: 1; background: transparent; border: none; outline: none; padding: 0.7rem 0.2rem;
+      color: var(--discord-header); font-size: 0.94rem;
+    }
+    .composer-btn {
+      background: transparent; border: none; color: #b5bac1; cursor: pointer;
+      font-size: 1.25rem; padding: 0.3rem; border-radius: 4px; transition: color 0.15s;
+    }
+    .composer-btn:hover { color: var(--discord-header); }
 
-    .messages-viewport {
-      flex: 1; padding: 1.25rem 1.5rem; overflow-y: auto; display: flex; flex-direction: column; gap: 0.9rem;
+    /* Popovers (GIF & Emoji Pickers) */
+    .discord-popover {
+      position: absolute; bottom: 75px; right: 1rem; width: 340px; background: var(--discord-sidebar);
+      border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); border: 1px solid var(--discord-border);
+      display: none; flex-direction: column; z-index: 50; overflow: hidden;
     }
+    .discord-popover.open { display: flex; }
+    .popover-header {
+      padding: 0.75rem 1rem; border-bottom: 1px solid var(--discord-border);
+      display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; font-weight: 700;
+    }
+    .popover-body { max-height: 240px; overflow-y: auto; padding: 0.75rem; }
 
-    .message-row { display: flex; gap: 0.75rem; max-width: 75%; }
-    .message-row.mine { align-self: flex-end; flex-direction: row-reverse; }
-    .message-row.other { align-self: flex-start; }
-    .bubble-wrapper { display: flex; flex-direction: column; gap: 0.25rem; }
-    .message-row.mine .bubble-wrapper { align-items: flex-end; }
-    .msg-sender { font-size: 0.72rem; font-weight: 600; color: var(--text-muted); }
-    .bubble {
-      padding: 0.7rem 0.95rem; border-radius: 14px; font-size: 0.9rem; line-height: 1.4; word-break: break-word;
+    /* Emojis Grid with Categories */
+    .emoji-section-label { font-size: 0.72rem; text-transform: uppercase; font-weight: 700; color: var(--discord-text-muted); margin: 0.4rem 0 0.2rem; }
+    .emoji-grid-wrap { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+    .emoji-btn {
+      background: transparent; border: none; cursor: pointer; font-size: 1.25rem; padding: 4px;
+      border-radius: 4px; transition: background 0.1s, transform 0.1s;
     }
-    .message-row.mine .bubble { background: var(--accent-gradient); color: #fff; border-bottom-right-radius: 3px; }
-    .message-row.other .bubble { background: var(--bg-panel); color: var(--text-main); border: 1px solid var(--border-color); border-bottom-left-radius: 3px; }
-    .bubble-gif { border-radius: 12px; overflow: hidden; max-width: 240px; border: 1px solid var(--border-color); }
-    .bubble-gif img { width: 100%; height: auto; display: block; }
-    .msg-timestamp { font-size: 0.65rem; color: rgba(255,255,255,0.4); margin: 0 0.2rem; }
+    .emoji-btn:hover { background: rgba(255,255,255,0.08); transform: scale(1.2); }
 
-    .system-notice {
-      align-self: center; background: rgba(255,255,255,0.04); padding: 0.25rem 0.75rem;
-      border-radius: 999px; font-size: 0.72rem; color: var(--text-muted); font-style: italic;
-    }
+    /* GIF Grid */
+    .gif-grid-wrap { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+    .gif-cell { border-radius: 6px; overflow: hidden; cursor: pointer; aspect-ratio: 16/9; background: var(--discord-darkest); }
+    .gif-cell img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.2s; }
+    .gif-cell:hover img { transform: scale(1.05); }
 
-    .typing-bar {
-      min-height: 20px; padding: 0 1.5rem 0.3rem; font-size: 0.74rem;
-      color: var(--accent); font-style: italic;
-    }
-
-    .quick-emoji-tray {
-      display: flex; gap: 0.4rem; padding: 0.35rem 1.25rem; background: var(--bg-surface);
-      border-top: 1px solid var(--border-color);
-    }
-    .emoji-chip { background: transparent; border: none; cursor: pointer; font-size: 1.15rem; padding: 0.2rem; }
-    .emoji-chip:hover { transform: scale(1.2); }
-
-    .composer-dock {
-      padding: 0.75rem 1.25rem 1rem; background: var(--bg-surface); display: flex; gap: 0.6rem; align-items: center;
-    }
-    .action-btn {
-      background: var(--bg-panel); border: 1px solid var(--border-color); color: var(--text-muted);
-      width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center;
-      cursor: pointer; font-size: 1.1rem;
-    }
-    .action-btn:hover { background: var(--bg-hover); color: #fff; }
-    .input-field {
-      flex: 1; padding: 0.75rem 1rem; background: var(--bg-panel); border: 1px solid var(--border-color);
-      border-radius: 10px; color: #fff; font-size: 0.9rem; outline: none;
-    }
-    .send-btn {
-      padding: 0 1.25rem; height: 40px; background: var(--accent-gradient); border: none;
-      border-radius: 10px; color: #fff; font-weight: 600; font-size: 0.88rem; cursor: pointer;
-    }
-
-    .popover-box {
-      position: absolute; bottom: 80px; left: 1.5rem; background: var(--bg-surface);
-      border: 1px solid var(--border-color); border-radius: 14px; padding: 1rem; width: 320px;
-      display: none; z-index: 20; box-shadow: 0 15px 35px rgba(0,0,0,0.6);
-    }
-    .popover-box.open { display: block; }
-    .popover-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
-    .gif-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; max-height: 200px; overflow-y: auto; }
-    .gif-item { cursor: pointer; border-radius: 8px; overflow: hidden; aspect-ratio: 16/9; background: var(--bg-panel); }
-    .gif-item img { width: 100%; height: 100%; object-fit: cover; }
-    .emoji-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 0.3rem; max-height: 180px; overflow-y: auto; text-align: center; }
-    .emoji-cell { cursor: pointer; font-size: 1.2rem; padding: 0.25rem; border-radius: 6px; }
-    .emoji-cell:hover { background: var(--bg-hover); }
-
-    ::-webkit-scrollbar { width: 5px; }
-    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 999px; }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-thumb { background: #1a1b1e; border-radius: 4px; }
   </style>
 </head>
 <body>
 
+  <!-- Discord Onboarding Modal -->
   <div id="loginOverlay">
-    <div class="login-card">
-      <div style="font-size: 2.2rem; margin-bottom: 0.5rem;">⚡</div>
-      <h2>CSC 423 Live Chat</h2>
-      <p>Enter your username to establish a TCP WebSocket connection.</p>
-      <input type="text" id="usernameInput" placeholder="Username (e.g. Jason)..." autocomplete="off" />
-      <button type="button" onclick="joinChat()">Connect to Server</button>
+    <div class="discord-auth-card">
+      <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">💬</div>
+      <h2>Welcome Back!</h2>
+      <p>Enter your username to connect to the CSC 423 Discord Hub.</p>
+      <input type="text" id="usernameInput" class="discord-input-field" placeholder="Username (e.g. Jason)..." autocomplete="off" />
+      <button class="discord-btn" onclick="joinChat()">Connect to Server</button>
     </div>
   </div>
 
-  <div class="app-container">
-    <header class="chat-header">
-      <div class="brand-title">
-        <div class="brand-logo">WS</div>
-        <div>
-          <h3 style="font-size: 0.95rem;">CSC 423 Socket Hub</h3>
-          <span style="font-size: 0.72rem; color: var(--text-muted);">TCP Full-Duplex Broadcast Engine</span>
-        </div>
-      </div>
-      <div id="statusBadge" class="status-badge offline">
-        <div class="status-dot"></div>
-        <span id="statusText">Disconnected</span>
-      </div>
-    </header>
+  <div class="discord-app">
+    
+    <!-- Leftmost Server Rail -->
+    <div class="server-rail">
+      <div class="server-icon active" title="CSC 423 Networks Server">423</div>
+      <div class="rail-separator"></div>
+      <div class="server-icon" title="Direct Messages">@</div>
+    </div>
 
-    <div class="chat-body">
-      <aside class="chat-sidebar">
+    <!-- Sidebar: Channels & DMs -->
+    <aside class="discord-sidebar">
+      <header class="sidebar-header">
+        <span>CSC 423 Server</span>
+        <span style="font-size: 0.8rem; color: var(--discord-text-muted);">v2.4</span>
+      </header>
+
+      <div class="channels-scroll">
+        <!-- Text Channels -->
         <div>
-          <div class="sidebar-section-title">Rooms</div>
-          <ul class="nav-list">
-            <li id="room-all" class="nav-item active" onclick="switchChannel('all', 'Group Chat')">
-              <div class="avatar">#</div>
-              <span>Group Chat</span>
+          <div class="category-title">Text Channels</div>
+          <ul class="channel-list">
+            <li id="chan-all" class="channel-item active" onclick="switchTarget('all', 'general', false)">
+              <div class="channel-left">
+                <span class="channel-prefix">#</span>
+                <span>general</span>
+              </div>
             </li>
           </ul>
         </div>
 
-        <div style="flex: 1; overflow-y: auto;">
-          <div class="sidebar-section-title">Direct Messages (<span id="userCount">0</span>)</div>
-          <ul id="userList" class="nav-list"></ul>
-        </div>
-      </aside>
-
-      <section class="chat-main">
-        <div class="current-chat-banner">
-          Active Conversation: <strong id="channelNameDisplay">Group Chat</strong>
-        </div>
-
-        <div id="messagesViewport" class="messages-viewport"></div>
-
-        <div id="typingIndicator" class="typing-bar"></div>
-
-        <div id="gifPopover" class="popover-box">
-          <div class="popover-header">
-            <h4 style="font-size: 0.85rem;">Select a GIF</h4>
-            <button type="button" onclick="toggleGifPicker(false)" style="background:none;border:none;color:#fff;cursor:pointer;">✕</button>
+        <!-- Direct Messages Section -->
+        <div>
+          <div class="category-title">
+            <span>Direct Messages</span>
+            <span id="userCount" style="font-size: 0.75rem;">0</span>
           </div>
-          <div class="gif-grid" id="gifGrid"></div>
+          <ul id="userList" class="channel-list"></ul>
         </div>
+      </div>
 
-        <div id="emojiPopover" class="popover-box">
-          <div class="popover-header">
-            <h4 style="font-size: 0.85rem;">Pick an Emoji</h4>
-            <button type="button" onclick="toggleEmojiPicker(false)" style="background:none;border:none;color:#fff;cursor:pointer;">✕</button>
+      <!-- Bottom User Panel -->
+      <footer class="user-footer">
+        <div class="profile-info">
+          <div class="user-avatar-wrap">
+            <div id="myAvatar" class="avatar">U</div>
+            <div class="status-dot-mini"></div>
           </div>
-          <div class="emoji-grid" id="emojiGrid"></div>
+          <div class="profile-names">
+            <span id="myUsernameDisplay" class="name">Guest</span>
+            <span class="tag">#0423</span>
+          </div>
+        </div>
+      </footer>
+    </aside>
+
+    <!-- Main Message Center -->
+    <main class="discord-main">
+      <header class="chat-topbar">
+        <div class="topbar-info">
+          <span id="topbarPrefix" class="channel-prefix">#</span>
+          <span id="activeTargetTitle">general</span>
+        </div>
+        <div id="socketBadge" class="socket-status-pill offline">
+          <span id="socketStatusText">Disconnected</span>
+        </div>
+      </header>
+
+      <!-- Message History Viewport -->
+      <section id="chatFeed" class="chat-feed"></section>
+
+      <!-- Discord Typing Bar -->
+      <div id="typingBar" class="typing-status-row"></div>
+
+      <!-- Input Bar & Trays -->
+      <div class="composer-wrapper">
+        <!-- Emoji Popover -->
+        <div id="emojiPopover" class="discord-popover">
+          <div class="popover-header">
+            <span>Select Emoji</span>
+            <button onclick="toggleEmojiPicker(false)" style="background:none;border:none;color:#fff;cursor:pointer;">✕</button>
+          </div>
+          <div id="emojiContainer" class="popover-body"></div>
         </div>
 
-        <div class="quick-emoji-tray">
-          <button type="button" class="emoji-chip" onclick="insertEmoji('🔥')">🔥</button>
-          <button type="button" class="emoji-chip" onclick="insertEmoji('🚀')">🚀</button>
-          <button type="button" class="emoji-chip" onclick="insertEmoji('😂')">😂</button>
-          <button type="button" class="emoji-chip" onclick="insertEmoji('❤️')">❤️</button>
-          <button type="button" class="emoji-chip" onclick="insertEmoji('👏')">👏</button>
-          <button type="button" class="emoji-chip" onclick="insertEmoji('👀')">👀</button>
+        <!-- GIF Popover -->
+        <div id="gifPopover" class="discord-popover">
+          <div class="popover-header">
+            <span>Select Tenor GIF</span>
+            <button onclick="toggleGifPicker(false)" style="background:none;border:none;color:#fff;cursor:pointer;">✕</button>
+          </div>
+          <div class="popover-body">
+            <div id="gifContainer" class="gif-grid-wrap"></div>
+          </div>
         </div>
 
-        <form id="composerForm" class="composer-dock">
-          <button type="button" class="action-btn" title="Pick an Emoji" onclick="toggleEmojiPicker()">😊</button>
-          <button type="button" class="action-btn" title="Send a GIF" onclick="toggleGifPicker()">GIF</button>
-          <input type="text" id="messageInput" class="input-field" placeholder="Type a message..." autocomplete="off" oninput="handleTyping()" required />
-          <button type="submit" class="send-btn">Send</button>
+        <form id="composerForm" class="composer-inner" onsubmit="handleSendMessage(event)">
+          <input type="text" id="chatInput" class="composer-input" placeholder="Message #general" autocomplete="off" oninput="handleTypingNotification()" required />
+          <button type="button" class="composer-btn" title="Pick GIF" onclick="toggleGifPicker()">GIF</button>
+          <button type="button" class="composer-btn" title="Pick Emoji" onclick="toggleEmojiPicker()">😊</button>
         </form>
-      </section>
-    </div>
+      </div>
+    </main>
+
   </div>
 
   <script>
     let socket = null;
     let myUsername = "";
-    let currentTarget = "all";
-    let typingTimeout = null;
+    let activeTarget = "all"; // "all" for group or target username for DM
+    let typingTimer = null;
 
-    const messageHistory = { "all": [] };
+    // Local in-memory conversation storage
+    const conversations = { "all": [] };
+    // Notification Tracker: { "Username": count }
+    const unreadCounts = {};
 
-    const statusBadge = document.getElementById("statusBadge");
-    const statusText = document.getElementById("statusText");
-    const chat = document.getElementById("messagesViewport");
+    const chatFeed = document.getElementById("chatFeed");
     const userListEl = document.getElementById("userList");
     const userCountEl = document.getElementById("userCount");
-    const channelNameDisplay = document.getElementById("channelNameDisplay");
-    const typingIndicator = document.getElementById("typingIndicator");
-    const form = document.getElementById("composerForm");
-    const messageInput = document.getElementById("messageInput");
-    const gifPopover = document.getElementById("gifPopover");
+    const activeTargetTitle = document.getElementById("activeTargetTitle");
+    const topbarPrefix = document.getElementById("topbarPrefix");
+    const chatInput = document.getElementById("chatInput");
+    const typingBar = document.getElementById("typingBar");
+    const socketBadge = document.getElementById("socketBadge");
+    const socketStatusText = document.getElementById("socketStatusText");
     const emojiPopover = document.getElementById("emojiPopover");
+    const gifPopover = document.getElementById("gifPopover");
 
-    const defaultGifs = [
+    // Google Keyboard Emoji Catalog (Categorized)
+    const emojiCategories = {
+      "Smileys & Emotion": [
+        "😀","😃","😄","😁","😆","😅","😂","🤣","🥲","🥹","😊","😇",
+        "🙂","🙃","😉","😌","😍","🥰","😘","😗","😙","😚","😋","😛",
+        "😝","😜","🤪","🤨","🧐","🤓","😎","🥸","🤩","🥳","😏","😒",
+        "😞","😔","😟","😕","🙁","☹️","😣","😖","😫","😩","🥺","😢",
+        "😭","😤","😠","😡","🤬","🤯","😳","🥵","🥶","😱","😨","😰"
+      ],
+      "Hands & Gestures": [
+        "👍","👎","👊","✊","🤛","🤜","👏","🙌","👐","🤲","🤝","🙏",
+        "✍️","💅","🤳","💪","🦾","🦵","🦿","🦶","👣","👂","🦻","👃"
+      ],
+      "Hearts & Celebrations": [
+        "❤️","🧡","💛","💚","💙","💜","🖤","🤍","🤎","💔","❤️‍🔥","❤️‍🩹",
+        "💯","💢","💥","💫","💦","💨","🕳️","🎉","🎊","🎈","🎂","🎁"
+      ],
+      "Tech & Symbols": [
+        "🔥","✨","🌟","⚡","☄️","💥","🚀","🛸","💻","🖥️","📱","📡",
+        "💡","🕹️","🎮","🎲","🏆","🥇","🎯","🔒","🔓","🔑","🛡️","⚙️"
+      ]
+    };
+
+    // Curated GIF catalog
+    const gifUrls = [
       "https://media.giphy.com/media/3o7TKSjRrfIPjeiVyM/giphy.gif",
       "https://media.giphy.com/media/26AHONQ79FdWZhAI0/giphy.gif",
       "https://media.giphy.com/media/111ebonMs90YLu/giphy.gif",
       "https://media.giphy.com/media/ICOgUNjpvO0PC/giphy.gif",
       "https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif",
-      "https://media.giphy.com/media/d3mlE7uhX8KFgEmY/giphy.gif"
+      "https://media.giphy.com/media/d3mlE7uhX8KFgEmY/giphy.gif",
+      "https://media.giphy.com/media/xT9IgzoKnwFNmISR8I/giphy.gif",
+      "https://media.giphy.com/media/unQ3IJU2RG7DO/giphy.gif",
+      "https://media.giphy.com/media/5GoVLqeAOo6PK/giphy.gif",
+      "https://media.giphy.com/media/l3q2K5jinAlChoCLS/giphy.gif",
+      "https://media.giphy.com/media/3oEjI6SIIHBdRxXI40/giphy.gif",
+      "https://media.giphy.com/media/citBl9yPwnUOs/giphy.gif"
     ];
 
-    const defaultEmojis = [
-      "😀","😂","🤣","😍","😎","🥳","🤩","🤔","🤫","🤯","🥶","😱",
-      "🔥","✨","🎉","💯","🚀","⚡","👍","👎","👏","🙌","🤝","🙏"
-    ];
+    // Build Emoji Tray
+    const emojiContainer = document.getElementById("emojiContainer");
+    for (const [cat, emojis] of Object.entries(emojiCategories)) {
+      const title = document.createElement("div");
+      title.className = "emoji-section-label";
+      title.textContent = cat;
+      emojiContainer.appendChild(title);
 
-    const gifGrid = document.getElementById("gifGrid");
-    defaultGifs.forEach(url => {
-      const div = document.createElement("div");
-      div.className = "gif-item";
-      div.innerHTML = `<img src="${url}" loading="lazy"/>`;
-      div.onclick = () => sendMedia("gif", url);
-      gifGrid.appendChild(div);
-    });
-
-    const emojiGrid = document.getElementById("emojiGrid");
-    defaultEmojis.forEach(em => {
-      const span = document.createElement("div");
-      span.className = "emoji-cell";
-      span.textContent = em;
-      span.onclick = () => { insertEmoji(em); toggleEmojiPicker(false); };
-      emojiGrid.appendChild(span);
-    });
-
-    function toggleGifPicker(force) {
-      emojiPopover.classList.remove("open");
-      if (typeof force === "boolean") {
-        gifPopover.classList.toggle("open", force);
-      } else {
-        gifPopover.classList.toggle("open");
-      }
+      const grid = document.createElement("div");
+      grid.className = "emoji-grid-wrap";
+      emojis.forEach(em => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "emoji-btn";
+        btn.textContent = em;
+        btn.onclick = () => { insertEmoji(em); toggleEmojiPicker(false); };
+        grid.appendChild(btn);
+      });
+      emojiContainer.appendChild(grid);
     }
+
+    // Build GIF Tray
+    const gifContainer = document.getElementById("gifContainer");
+    gifUrls.forEach(url => {
+      const cell = document.createElement("div");
+      cell.className = "gif-cell";
+      cell.innerHTML = `<img src="${url}" loading="lazy"/>`;
+      cell.onclick = () => sendMediaPayload("gif", url);
+      gifContainer.appendChild(cell);
+    });
 
     function toggleEmojiPicker(force) {
       gifPopover.classList.remove("open");
-      if (typeof force === "boolean") {
-        emojiPopover.classList.toggle("open", force);
-      } else {
-        emojiPopover.classList.toggle("open");
-      }
+      emojiPopover.classList.toggle("open", typeof force === "boolean" ? force : undefined);
+    }
+
+    function toggleGifPicker(force) {
+      emojiPopover.classList.remove("open");
+      gifPopover.classList.toggle("open", typeof force === "boolean" ? force : undefined);
     }
 
     function insertEmoji(em) {
-      messageInput.value += em;
-      messageInput.focus();
+      chatInput.value += em;
+      chatInput.focus();
     }
 
-    function switchChannel(targetId, displayName) {
-      currentTarget = targetId;
-      channelNameDisplay.textContent = targetId === "all" ? "Group Chat" : `Private DM with @${targetId}`;
+    function handleTypingNotification() {
+      if (!socket || socket.readyState !== WebSocket.OPEN) return;
+      socket.send(JSON.stringify({ type: "typing", target: activeTarget }));
+    }
 
-      document.querySelectorAll(".nav-item").forEach(el => el.classList.remove("active"));
-      const activeEl = targetId === "all" ? document.getElementById("room-all") : document.getElementById(`user-${targetId}`);
+    function switchTarget(id, titleText, isDM = false) {
+      activeTarget = id;
+      activeTargetTitle.textContent = titleText;
+      topbarPrefix.textContent = isDM ? "@" : "#";
+      chatInput.placeholder = isDM ? `Message @${titleText}` : `Message #${titleText}`;
+
+      // Reset unread notifications for this target
+      if (unreadCounts[id]) {
+        unreadCounts[id] = 0;
+        updateUserListUI();
+      }
+
+      // Sidebar item active highlighting
+      document.querySelectorAll(".channel-item").forEach(el => el.classList.remove("active"));
+      const activeEl = id === "all" ? document.getElementById("chan-all") : document.getElementById(`dm-${id}`);
       if (activeEl) activeEl.classList.add("active");
 
-      chat.innerHTML = "";
-      if (!messageHistory[currentTarget]) messageHistory[currentTarget] = [];
-      messageHistory[currentTarget].forEach(payload => appendMessageDOM(payload));
-      typingIndicator.textContent = "";
-    }
-
-    function handleTyping() {
-      if (!socket || socket.readyState !== WebSocket.OPEN) return;
-      socket.send(JSON.stringify({ type: "typing", target: currentTarget }));
+      // Render conversation stream
+      chatFeed.innerHTML = "";
+      if (!conversations[activeTarget]) conversations[activeTarget] = [];
+      conversations[activeTarget].forEach(msg => appendMessageToFeed(msg));
+      typingBar.textContent = "";
     }
 
     function joinChat() {
-      const name = document.getElementById("usernameInput").value.trim();
-      if (!name) return;
-      myUsername = name;
+      const val = document.getElementById("usernameInput").value.trim();
+      if (!val) return;
+      myUsername = val;
       document.getElementById("loginOverlay").style.display = "none";
+      document.getElementById("myUsernameDisplay").textContent = myUsername;
+      document.getElementById("myAvatar").textContent = myUsername.substring(0, 2).toUpperCase();
 
       const protocol = window.location.protocol === "https:" ? "wss://" : "ws://";
       const wsUrl = `${protocol}${window.location.host}/ws/${encodeURIComponent(myUsername)}`;
       socket = new WebSocket(wsUrl);
 
       socket.onopen = () => {
-        statusBadge.className = "status-badge live";
-        statusText.textContent = "Live Socket";
+        socketBadge.className = "socket-status-pill";
+        socketStatusText.textContent = "Live Socket";
       };
 
       socket.onclose = () => {
-        statusBadge.className = "status-badge offline";
-        statusText.textContent = "Offline";
+        socketBadge.className = "socket-status-pill offline";
+        socketStatusText.textContent = "Disconnected";
       };
 
       socket.onmessage = (event) => {
@@ -381,101 +498,140 @@
           payload = { type: "message", target: "all", sender: "Unknown", content: event.data, kind: "text" };
         }
 
+        // 1. Presence List Updates
         if (payload.type === "userlist") {
-          userListEl.innerHTML = "";
-          const otherUsers = (payload.users || []).filter(u => u !== myUsername);
-          userCountEl.textContent = otherUsers.length;
-
-          otherUsers.forEach(u => {
-            const li = document.createElement("li");
-            li.id = `user-${u}`;
-            li.className = `nav-item ${currentTarget === u ? 'active' : ''}`;
-            li.onclick = () => switchChannel(u, u);
-            li.innerHTML = `
-              <div class="avatar">${u.substring(0, 2).toUpperCase()}</div>
-              <span>${escapeHtml(u)}</span>
-            `;
-            userListEl.appendChild(li);
-          });
+          window.lastKnownUsers = payload.users || [];
+          updateUserListUI();
           return;
         }
 
+        // 2. Typing Indicators
         if (payload.type === "typing") {
-          if ((currentTarget === "all" && payload.target === "all") || (currentTarget === payload.sender && payload.target === myUsername)) {
-            typingIndicator.textContent = `${payload.sender} is typing...`;
-            clearTimeout(typingTimeout);
-            typingTimeout = setTimeout(() => { typingIndicator.textContent = ""; }, 2000);
+          if ((activeTarget === "all" && payload.target === "all") || (activeTarget === payload.sender && payload.target === myUsername)) {
+            typingBar.textContent = `${payload.sender} is typing...`;
+            clearTimeout(typingTimer);
+            typingTimer = setTimeout(() => { typingBar.textContent = ""; }, 2200);
           }
           return;
         }
 
-        // Store into history bucket
-        const storageKey = payload.target === "all" ? "all" : (payload.sender === myUsername ? payload.target : payload.sender);
-        if (!messageHistory[storageKey]) messageHistory[storageKey] = [];
-        messageHistory[storageKey].push(payload);
+        // 3. System Events (Join & Leave notices)
+        if (payload.type === "system") {
+          conversations["all"].push(payload);
+          if (activeTarget === "all") {
+            appendMessageToFeed(payload);
+          }
+          return;
+        }
 
-        if (storageKey === currentTarget) {
-          appendMessageDOM(payload);
+        // 4. Chat Messages (Group & DM)
+        const storageKey = payload.target === "all" ? "all" : (payload.sender === myUsername ? payload.target : payload.sender);
+        if (!conversations[storageKey]) conversations[storageKey] = [];
+        conversations[storageKey].push(payload);
+
+        // Manage Unread Notifications if message is not in current active view
+        if (storageKey !== activeTarget && payload.sender !== myUsername) {
+          unreadCounts[storageKey] = (unreadCounts[storageKey] || 0) + 1;
+          updateUserListUI();
+        }
+
+        // If currently in this conversation, render directly
+        if (storageKey === activeTarget) {
+          appendMessageToFeed(payload);
         }
       };
     }
 
-    form.onsubmit = (e) => {
+    function updateUserListUI() {
+      const users = window.lastKnownUsers || [];
+      const others = users.filter(u => u !== myUsername);
+      userCountEl.textContent = others.length;
+      userListEl.innerHTML = "";
+
+      others.forEach(u => {
+        const count = unreadCounts[u] || 0;
+        const li = document.createElement("li");
+        li.id = `dm-${u}`;
+        li.className = `channel-item ${activeTarget === u ? 'active' : ''}`;
+        li.onclick = () => switchTarget(u, u, true);
+
+        li.innerHTML = `
+          <div class="channel-left">
+            <span class="channel-prefix">@</span>
+            <span>${escapeHtml(u)}</span>
+          </div>
+          ${count > 0 ? `<div class="notif-badge">${count}</div>` : ''}
+        `;
+        userListEl.appendChild(li);
+      });
+    }
+
+    function handleSendMessage(e) {
       e.preventDefault();
-      const val = messageInput.value.trim();
-      if (!val || !socket || socket.readyState !== WebSocket.OPEN) return;
+      const text = chatInput.value.trim();
+      if (!text || !socket || socket.readyState !== WebSocket.OPEN) return;
 
       socket.send(JSON.stringify({
         type: "message",
-        target: currentTarget,
+        target: activeTarget,
         kind: "text",
-        content: val
+        content: text
       }));
-      messageInput.value = "";
-    };
+      chatInput.value = "";
+    }
 
-    function sendMedia(kind, url) {
+    function sendMediaPayload(kind, url) {
       if (!socket || socket.readyState !== WebSocket.OPEN) return;
       socket.send(JSON.stringify({
         type: "message",
-        target: currentTarget,
+        target: activeTarget,
         kind: kind,
         content: url
       }));
       toggleGifPicker(false);
     }
 
-    function appendMessageDOM(payload) {
+    function appendMessageToFeed(payload) {
       const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
+      // Join / Leave Banner
       if (payload.type === "system") {
-        const sys = document.createElement("div");
-        sys.className = "system-notice";
-        sys.textContent = payload.text;
-        chat.appendChild(sys);
-      } else {
-        const isMine = payload.sender === myUsername;
+        const div = document.createElement("div");
+        const isJoin = payload.event === "join";
+        div.className = `system-event-row ${isJoin ? 'join' : 'leave'}`;
+        div.innerHTML = `
+          <span>${isJoin ? '➡️' : '⬅️'}</span>
+          <span><strong>${escapeHtml(payload.text)}</strong></span>
+          <span style="font-size:0.7rem;opacity:0.6;margin-left:auto;">${time}</span>
+        `;
+        chatFeed.appendChild(div);
+      } 
+      // Standard Chat Bubble
+      else {
         const row = document.createElement("div");
-        row.className = `message-row ${isMine ? 'mine' : 'other'}`;
+        row.className = "msg-group";
 
-        let bodyContent = "";
+        let body = "";
         if (payload.kind === "gif") {
-          bodyContent = `<div class="bubble-gif"><img src="${payload.content}" alt="GIF"/></div>`;
+          body = `<div class="msg-gif-wrap"><img src="${payload.content}" alt="Shared GIF"/></div>`;
         } else {
-          bodyContent = `<div class="bubble">${escapeHtml(payload.content || "")}</div>`;
+          body = `<div class="msg-text">${escapeHtml(payload.content)}</div>`;
         }
 
         row.innerHTML = `
-          <div class="avatar">${payload.sender.substring(0, 2).toUpperCase()}</div>
-          <div class="bubble-wrapper">
-            ${!isMine ? `<span class="msg-sender">${escapeHtml(payload.sender)}</span>` : ''}
-            ${bodyContent}
-            <span class="msg-timestamp">${time}</span>
+          <div class="msg-avatar">${payload.sender.substring(0, 2).toUpperCase()}</div>
+          <div class="msg-content-col">
+            <div class="msg-meta">
+              <span class="author-name">${escapeHtml(payload.sender)}</span>
+              <span class="timestamp">${time}</span>
+            </div>
+            ${body}
           </div>
         `;
-        chat.appendChild(row);
+        chatFeed.appendChild(row);
       }
-      chat.scrollTop = chat.scrollHeight;
+
+      chatFeed.scrollTop = chatFeed.scrollHeight;
     }
 
     function escapeHtml(str) {
