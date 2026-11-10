@@ -21,10 +21,10 @@
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
-    body { background-color: var(--bg-main); color: var(--text-main); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 1.5rem; }
+    body { background-color: var(--bg-main); color: var(--text-main); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 1rem; }
 
     #loginOverlay {
-      position: fixed; inset: 0; background: rgba(9, 13, 22, 0.9);
+      position: fixed; inset: 0; background: rgba(9, 13, 22, 0.92);
       backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 50;
     }
     .login-card {
@@ -45,7 +45,7 @@
     }
 
     .app-container {
-      width: 100%; max-width: 1020px; height: 88vh; background: var(--bg-surface);
+      width: 100%; max-width: 1020px; height: 90vh; background: var(--bg-surface);
       border: 1px solid var(--border-color); border-radius: 20px; display: flex; flex-direction: column;
       overflow: hidden; box-shadow: 0 25px 60px rgba(0,0,0,0.7);
     }
@@ -69,7 +69,6 @@
 
     .chat-body { display: flex; flex: 1; overflow: hidden; }
 
-    /* Sidebar Channels & Direct Messages */
     .chat-sidebar {
       width: 250px; background: rgba(15, 23, 42, 0.6); border-right: 1px solid var(--border-color);
       padding: 1.25rem 1rem; display: flex; flex-direction: column; gap: 1.2rem;
@@ -92,7 +91,6 @@
       display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 700;
     }
 
-    /* Main Chat Section */
     .chat-main { flex: 1; display: flex; flex-direction: column; background: #0c121e; position: relative; }
     .current-chat-banner {
       padding: 0.75rem 1.5rem; background: rgba(255,255,255,0.02);
@@ -124,7 +122,6 @@
       border-radius: 999px; font-size: 0.72rem; color: var(--text-muted); font-style: italic;
     }
 
-    /* Typing Bar */
     .typing-bar {
       min-height: 20px; padding: 0 1.5rem 0.3rem; font-size: 0.74rem;
       color: var(--accent); font-style: italic;
@@ -155,7 +152,6 @@
       border-radius: 10px; color: #fff; font-weight: 600; font-size: 0.88rem; cursor: pointer;
     }
 
-    /* Popovers */
     .popover-box {
       position: absolute; bottom: 80px; left: 1.5rem; background: var(--bg-surface);
       border: 1px solid var(--border-color); border-radius: 14px; padding: 1rem; width: 320px;
@@ -182,7 +178,7 @@
       <h2>CSC 423 Live Chat</h2>
       <p>Enter your username to establish a TCP WebSocket connection.</p>
       <input type="text" id="usernameInput" placeholder="Username (e.g. Jason)..." autocomplete="off" />
-      <button onclick="joinChat()">Connect to Server</button>
+      <button type="button" onclick="joinChat()">Connect to Server</button>
     </div>
   </div>
 
@@ -202,7 +198,6 @@
     </header>
 
     <div class="chat-body">
-      <!-- Sidebar Navigation: Channels & 1-on-1 DMs -->
       <aside class="chat-sidebar">
         <div>
           <div class="sidebar-section-title">Rooms</div>
@@ -220,7 +215,6 @@
         </div>
       </aside>
 
-      <!-- Main Messages Stream -->
       <section class="chat-main">
         <div class="current-chat-banner">
           Active Conversation: <strong id="channelNameDisplay">Group Chat</strong>
@@ -228,38 +222,33 @@
 
         <div id="messagesViewport" class="messages-viewport"></div>
 
-        <!-- Typing Indicator Area -->
         <div id="typingIndicator" class="typing-bar"></div>
 
-        <!-- GIF Flyout -->
         <div id="gifPopover" class="popover-box">
           <div class="popover-header">
             <h4 style="font-size: 0.85rem;">Select a GIF</h4>
-            <button onclick="toggleGifPicker(false)" style="background:none;border:none;color:#fff;cursor:pointer;">✕</button>
+            <button type="button" onclick="toggleGifPicker(false)" style="background:none;border:none;color:#fff;cursor:pointer;">✕</button>
           </div>
           <div class="gif-grid" id="gifGrid"></div>
         </div>
 
-        <!-- Emoji Flyout -->
         <div id="emojiPopover" class="popover-box">
           <div class="popover-header">
             <h4 style="font-size: 0.85rem;">Pick an Emoji</h4>
-            <button onclick="toggleEmojiPicker(false)" style="background:none;border:none;color:#fff;cursor:pointer;">✕</button>
+            <button type="button" onclick="toggleEmojiPicker(false)" style="background:none;border:none;color:#fff;cursor:pointer;">✕</button>
           </div>
           <div class="emoji-grid" id="emojiGrid"></div>
         </div>
 
-        <!-- Quick Emoji Strip -->
         <div class="quick-emoji-tray">
-          <button class="emoji-chip" onclick="insertEmoji('🔥')">🔥</button>
-          <button class="emoji-chip" onclick="insertEmoji('🚀')">🚀</button>
-          <button class="emoji-chip" onclick="insertEmoji('😂')">😂</button>
-          <button class="emoji-chip" onclick="insertEmoji('❤️')">❤️</button>
-          <button class="emoji-chip" onclick="insertEmoji('👏')">👏</button>
-          <button class="emoji-chip" onclick="insertEmoji('👀')">👀</button>
+          <button type="button" class="emoji-chip" onclick="insertEmoji('🔥')">🔥</button>
+          <button type="button" class="emoji-chip" onclick="insertEmoji('🚀')">🚀</button>
+          <button type="button" class="emoji-chip" onclick="insertEmoji('😂')">😂</button>
+          <button type="button" class="emoji-chip" onclick="insertEmoji('❤️')">❤️</button>
+          <button type="button" class="emoji-chip" onclick="insertEmoji('👏')">👏</button>
+          <button type="button" class="emoji-chip" onclick="insertEmoji('👀')">👀</button>
         </div>
 
-        <!-- Input Dock -->
         <form id="composerForm" class="composer-dock">
           <button type="button" class="action-btn" title="Pick an Emoji" onclick="toggleEmojiPicker()">😊</button>
           <button type="button" class="action-btn" title="Send a GIF" onclick="toggleGifPicker()">GIF</button>
@@ -273,10 +262,9 @@
   <script>
     let socket = null;
     let myUsername = "";
-    let currentTarget = "all"; // 'all' for group, or specific username for 1-to-1
+    let currentTarget = "all";
     let typingTimeout = null;
 
-    // In-memory conversation stores: { "all": [...], "Username": [...] }
     const messageHistory = { "all": [] };
 
     const statusBadge = document.getElementById("statusBadge");
@@ -305,7 +293,6 @@
       "🔥","✨","🎉","💯","🚀","⚡","👍","👎","👏","🙌","🤝","🙏"
     ];
 
-    // Populate GIF & Emoji pickers
     const gifGrid = document.getElementById("gifGrid");
     defaultGifs.forEach(url => {
       const div = document.createElement("div");
@@ -326,12 +313,20 @@
 
     function toggleGifPicker(force) {
       emojiPopover.classList.remove("open");
-      gifPopover.classList.toggle("open", typeof force === "boolean" ? force : undefined);
+      if (typeof force === "boolean") {
+        gifPopover.classList.toggle("open", force);
+      } else {
+        gifPopover.classList.toggle("open");
+      }
     }
 
     function toggleEmojiPicker(force) {
       gifPopover.classList.remove("open");
-      emojiPopover.classList.toggle("open", typeof force === "boolean" ? force : undefined);
+      if (typeof force === "boolean") {
+        emojiPopover.classList.toggle("open", force);
+      } else {
+        emojiPopover.classList.toggle("open");
+      }
     }
 
     function insertEmoji(em) {
@@ -343,9 +338,29 @@
       currentTarget = targetId;
       channelNameDisplay.textContent = targetId === "all" ? "Group Chat" : `Private DM with @${targetId}`;
 
-      // Update active highlight in sidebar
       document.querySelectorAll(".nav-item").forEach(el => el.classList.remove("active"));
-      const activeEl = targetId === "all" ? document.getElementById("room-all") : document.getElementById(`user-${targetId}`); if (activeEl) activeEl.classList.add("active");  // Re-render chat stream from memory chat.innerHTML = ""; if (!messageHistory[currentTarget]) messageHistory[currentTarget] = []; messageHistory[currentTarget].forEach(payload => appendMessageDOM(payload)); typingIndicator.textContent = ""; }  function handleTyping() { if (!socket \vert{}\vert{} socket.readyState !== WebSocket.OPEN) return; socket.send(JSON.stringify({ type: "typing", target: currentTarget })); }  function joinChat() { const name = document.getElementById("usernameInput").value.trim(); if (!name) return; myUsername = name; document.getElementById("loginOverlay").style.display = "none";  const protocol = window.location.protocol === "https:" ? "wss://" : "ws://"; const wsUrl = `${protocol}${window.location.host}/ws/${encodeURIComponent(myUsername)}`;
+      const activeEl = targetId === "all" ? document.getElementById("room-all") : document.getElementById(`user-${targetId}`);
+      if (activeEl) activeEl.classList.add("active");
+
+      chat.innerHTML = "";
+      if (!messageHistory[currentTarget]) messageHistory[currentTarget] = [];
+      messageHistory[currentTarget].forEach(payload => appendMessageDOM(payload));
+      typingIndicator.textContent = "";
+    }
+
+    function handleTyping() {
+      if (!socket || socket.readyState !== WebSocket.OPEN) return;
+      socket.send(JSON.stringify({ type: "typing", target: currentTarget }));
+    }
+
+    function joinChat() {
+      const name = document.getElementById("usernameInput").value.trim();
+      if (!name) return;
+      myUsername = name;
+      document.getElementById("loginOverlay").style.display = "none";
+
+      const protocol = window.location.protocol === "https:" ? "wss://" : "ws://";
+      const wsUrl = `${protocol}${window.location.host}/ws/${encodeURIComponent(myUsername)}`;
       socket = new WebSocket(wsUrl);
 
       socket.onopen = () => {
@@ -359,30 +374,33 @@
       };
 
       socket.onmessage = (event) => {
-        const payload = JSON.parse(event.data);
+        let payload;
+        try {
+          payload = JSON.parse(event.data);
+        } catch(e) {
+          payload = { type: "message", target: "all", sender: "Unknown", content: event.data, kind: "text" };
+        }
 
-        // 1. User Presence List Update
         if (payload.type === "userlist") {
           userListEl.innerHTML = "";
-          const otherUsers = payload.users.filter(u => u !== myUsername);
+          const otherUsers = (payload.users || []).filter(u => u !== myUsername);
           userCountEl.textContent = otherUsers.length;
 
           otherUsers.forEach(u => {
             const li = document.createElement("li");
-            li.id = `user-${u}`; li.className = `nav-item ${currentTarget === u ? 'active' : ''}`;
+            li.id = `user-${u}`;
+            li.className = `nav-item ${currentTarget === u ? 'active' : ''}`;
             li.onclick = () => switchChannel(u, u);
             li.innerHTML = `
               <div class="avatar">${u.substring(0, 2).toUpperCase()}</div>
-              <span>${u}</span>
+              <span>${escapeHtml(u)}</span>
             `;
             userListEl.appendChild(li);
           });
           return;
         }
 
-        // 2. Typing Notification Event
         if (payload.type === "typing") {
-          // If in group chat and typing target is group, or in DM with this sender
           if ((currentTarget === "all" && payload.target === "all") || (currentTarget === payload.sender && payload.target === myUsername)) {
             typingIndicator.textContent = `${payload.sender} is typing...`;
             clearTimeout(typingTimeout);
@@ -391,12 +409,11 @@
           return;
         }
 
-        // 3. Chat / System Message Event
+        // Store into history bucket
         const storageKey = payload.target === "all" ? "all" : (payload.sender === myUsername ? payload.target : payload.sender);
         if (!messageHistory[storageKey]) messageHistory[storageKey] = [];
         messageHistory[storageKey].push(payload);
 
-        // If the message belongs to current active view, render it
         if (storageKey === currentTarget) {
           appendMessageDOM(payload);
         }
@@ -443,12 +460,27 @@
 
         let bodyContent = "";
         if (payload.kind === "gif") {
-          bodyContent = `<div class="bubble-gif"><img src="${payload.content}" alt="Shared GIF"/></div>`;
+          bodyContent = `<div class="bubble-gif"><img src="${payload.content}" alt="GIF"/></div>`;
         } else {
-          bodyContent = `<div class="bubble">${escapeHtml(payload.content)}</div>`;
+          bodyContent = `<div class="bubble">${escapeHtml(payload.content || "")}</div>`;
         }
 
         row.innerHTML = `
           <div class="avatar">${payload.sender.substring(0, 2).toUpperCase()}</div>
           <div class="bubble-wrapper">
-            ${!isMine ? `<span class="msg-sender">${escapeHtml(payload.sender)}</span>` :
+            ${!isMine ? `<span class="msg-sender">${escapeHtml(payload.sender)}</span>` : ''}
+            ${bodyContent}
+            <span class="msg-timestamp">${time}</span>
+          </div>
+        `;
+        chat.appendChild(row);
+      }
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+  </script>
+</body>
+</html>
