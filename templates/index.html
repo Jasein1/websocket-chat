@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Discord | CSC 423 Network Hub</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=gg+sans:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
       --discord-darkest: #1e1f22;
@@ -24,43 +24,67 @@
       --discord-border: rgba(255, 255, 255, 0.06);
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'gg sans', 'Plus Jakarta Sans', sans-serif; }
-    body { background-color: var(--discord-darkest); color: var(--discord-text); display: flex; height: 100vh; overflow: hidden; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
+    
+    html, body {
+      height: 100%;
+      height: 100dvh;
+      background-color: var(--discord-darkest);
+      color: var(--discord-text);
+      overflow: hidden;
+    }
 
     /* Modal Login */
     #loginOverlay {
-      position: fixed; inset: 0; background: rgba(0, 0, 0, 0.82);
-      backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; z-index: 100;
+      position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 200;
+      padding: 1rem;
     }
     .discord-auth-card {
-      background: var(--discord-sidebar); border-radius: 8px; padding: 2.2rem;
-      width: 90%; max-width: 420px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+      background: var(--discord-sidebar); border-radius: 12px; padding: 2rem 1.5rem;
+      width: 100%; max-width: 400px; text-align: center; box-shadow: 0 12px 36px rgba(0,0,0,0.7);
     }
-    .discord-auth-card h2 { color: var(--discord-header); font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem; }
-    .discord-auth-card p { color: var(--discord-text-muted); font-size: 0.9rem; margin-bottom: 1.5rem; }
+    .discord-auth-card h2 { color: var(--discord-header); font-size: 1.4rem; font-weight: 700; margin-bottom: 0.4rem; }
+    .discord-auth-card p { color: var(--discord-text-muted); font-size: 0.85rem; margin-bottom: 1.25rem; }
     .discord-input-field {
-      width: 100%; padding: 0.75rem 1rem; background: var(--discord-darkest); border: 1px solid var(--discord-border);
-      border-radius: 4px; color: #fff; font-size: 0.95rem; margin-bottom: 1.2rem; outline: none; transition: border-color 0.2s;
+      width: 100%; padding: 0.8rem 1rem; background: var(--discord-darkest); border: 1px solid var(--discord-border);
+      border-radius: 6px; color: #fff; font-size: 0.95rem; margin-bottom: 1rem; outline: none; transition: border-color 0.2s;
     }
     .discord-input-field:focus { border-color: var(--discord-blurple); }
     .discord-btn {
-      width: 100%; padding: 0.8rem; background: var(--discord-blurple); border: none; border-radius: 4px;
+      width: 100%; padding: 0.8rem; background: var(--discord-blurple); border: none; border-radius: 6px;
       color: #fff; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: background 0.15s;
     }
     .discord-btn:hover { background: var(--discord-blurple-hover); }
 
     /* App Shell */
-    .discord-app { display: flex; width: 100vw; height: 100vh; }
+    .discord-app {
+      display: flex; width: 100vw; height: 100%; height: 100dvh; position: relative; overflow: hidden;
+    }
+
+    /* Backdrop for mobile drawer */
+    .sidebar-backdrop {
+      display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(2px); z-index: 40; transition: opacity 0.3s;
+    }
+    .sidebar-backdrop.active { display: block; }
+
+    /* Unified Sidebar Container (Rail + Channel Nav) */
+    .sidebar-wrapper {
+      display: flex; height: 100%; z-index: 50; flex-shrink: 0;
+      transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    }
 
     /* 1. Leftmost Server Rail */
     .server-rail {
       width: 72px; background: var(--discord-darkest); display: flex; flex-direction: column;
-      align-items: center; padding: 0.75rem 0; gap: 0.6rem; border-right: 1px solid var(--discord-border);
+      align-items: center; padding: 0.75rem 0; gap: 0.5rem; border-right: 1px solid var(--discord-border);
+      flex-shrink: 0;
     }
     .server-icon {
       width: 48px; height: 48px; border-radius: 24px; background: var(--discord-sidebar);
       display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--discord-text);
-      font-weight: 700; font-size: 1.1rem; transition: all 0.2s; position: relative;
+      font-weight: 700; font-size: 1.05rem; transition: all 0.2s; position: relative;
     }
     .server-icon:hover, .server-icon.active { border-radius: 16px; background: var(--discord-blurple); color: #fff; }
     .server-icon.active::before {
@@ -72,29 +96,30 @@
     /* 2. Channel & DM Navigation Sidebar */
     .discord-sidebar {
       width: 240px; background: var(--discord-sidebar); display: flex; flex-direction: column;
+      border-right: 1px solid var(--discord-darkest); flex-shrink: 0;
     }
     .sidebar-header {
       height: 48px; padding: 0 1rem; display: flex; align-items: center; justify-content: space-between;
       border-bottom: 1px solid var(--discord-darkest); box-shadow: 0 1px 2px rgba(0,0,0,0.2);
       font-weight: 700; font-size: 0.95rem; color: var(--discord-header);
     }
-    .channels-scroll { flex: 1; overflow-y: auto; padding: 0.75rem 0.5rem; display: flex; flex-direction: column; gap: 1rem; }
+    .channels-scroll { flex: 1; overflow-y: auto; padding: 0.75rem 0.5rem; display: flex; flex-direction: column; gap: 0.9rem; }
     .category-title {
-      font-size: 0.72rem; text-transform: uppercase; font-weight: 700; color: var(--discord-text-muted);
+      font-size: 0.7rem; text-transform: uppercase; font-weight: 700; color: var(--discord-text-muted);
       letter-spacing: 0.05em; padding: 0.2rem 0.5rem; display: flex; justify-content: space-between; align-items: center;
     }
     .channel-list { list-style: none; display: flex; flex-direction: column; gap: 2px; }
     .channel-item {
-      display: flex; align-items: center; justify-content: space-between; padding: 0.45rem 0.6rem;
-      border-radius: 4px; color: var(--discord-text-muted); cursor: pointer; font-size: 0.92rem; font-weight: 500;
+      display: flex; align-items: center; justify-content: space-between; padding: 0.55rem 0.65rem;
+      border-radius: 4px; color: var(--discord-text-muted); cursor: pointer; font-size: 0.9rem; font-weight: 500;
       transition: background 0.15s, color 0.15s;
     }
     .channel-item:hover { background: rgba(255,255,255,0.04); color: var(--discord-text); }
-    .channel-item.active { background: rgba(255,255,255,0.07); color: #fff; }
+    .channel-item.active { background: rgba(255,255,255,0.08); color: #fff; }
     .channel-left { display: flex; align-items: center; gap: 0.5rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .channel-prefix { font-size: 1.1rem; color: var(--discord-text-muted); font-weight: 400; }
 
-    /* Notification Badge (Discord Red Circle) */
+    /* Notification Badge */
     .notif-badge {
       background: var(--discord-red); color: #fff; font-size: 0.72rem; font-weight: 700;
       min-width: 18px; height: 18px; border-radius: 9px; padding: 0 5px;
@@ -102,7 +127,7 @@
       box-shadow: 0 2px 4px rgba(0,0,0,0.4);
     }
 
-    /* User Profile Bar at Sidebar Bottom */
+    /* Bottom User Profile Bar */
     .user-footer {
       height: 52px; background: #232428; padding: 0 0.6rem; display: flex; align-items: center; justify-content: space-between;
     }
@@ -117,100 +142,160 @@
       border-radius: 50%; background: var(--discord-green); border: 2px solid #232428;
     }
     .profile-names { display: flex; flex-direction: column; line-height: 1.2; }
-    .profile-names .name { font-size: 0.84rem; font-weight: 600; color: var(--discord-header); }
+    .profile-names .name { font-size: 0.82rem; font-weight: 600; color: var(--discord-header); }
     .profile-names .tag { font-size: 0.7rem; color: var(--discord-text-muted); }
 
     /* 3. Main Chat Viewport */
-    .discord-main { flex: 1; display: flex; flex-direction: column; background: var(--discord-chat); position: relative; }
+    .discord-main { flex: 1; display: flex; flex-direction: column; background: var(--discord-chat); position: relative; min-width: 0; }
     .chat-topbar {
-      height: 48px; border-bottom: 1px solid var(--discord-darkest); padding: 0 1rem;
+      height: 48px; border-bottom: 1px solid var(--discord-darkest); padding: 0 0.75rem 0 0.5rem;
       display: flex; align-items: center; justify-content: space-between; box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+      flex-shrink: 0;
     }
-    .topbar-info { display: flex; align-items: center; gap: 0.5rem; font-weight: 700; color: var(--discord-header); font-size: 0.95rem; }
+    .topbar-info-group { display: flex; align-items: center; gap: 0.5rem; min-width: 0; }
+    
+    /* Hamburger Menu Button (Mobile Only) */
+    .mobile-menu-btn {
+      display: none; background: transparent; border: none; color: var(--discord-text-muted);
+      font-size: 1.35rem; cursor: pointer; padding: 0.35rem 0.5rem; border-radius: 4px;
+    }
+    .mobile-menu-btn:hover { color: var(--discord-header); background: rgba(255,255,255,0.05); }
+
+    .topbar-info { display: flex; align-items: center; gap: 0.4rem; font-weight: 700; color: var(--discord-header); font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .socket-status-pill {
-      font-size: 0.75rem; font-weight: 600; padding: 0.25rem 0.6rem; border-radius: 12px;
-      background: rgba(35, 165, 90, 0.15); color: var(--discord-green); display: flex; align-items: center; gap: 0.35rem;
+      font-size: 0.72rem; font-weight: 600; padding: 0.2rem 0.55rem; border-radius: 12px;
+      background: rgba(35, 165, 90, 0.15); color: var(--discord-green); display: flex; align-items: center; gap: 0.35rem; flex-shrink: 0;
     }
     .socket-status-pill.offline { background: rgba(242, 63, 67, 0.15); color: var(--discord-red); }
 
     /* Messages Stream */
-    .chat-feed { flex: 1; overflow-y: auto; padding: 1.2rem 1rem; display: flex; flex-direction: column; gap: 1rem; }
+    .chat-feed { flex: 1; overflow-y: auto; padding: 0.8rem 0.75rem; display: flex; flex-direction: column; gap: 0.85rem; }
     .msg-group {
-      display: flex; gap: 1rem; padding: 0.25rem 0.5rem; border-radius: 4px; transition: background 0.1s;
+      display: flex; gap: 0.75rem; padding: 0.25rem 0.4rem; border-radius: 4px; transition: background 0.1s;
     }
     .msg-group:hover { background: var(--discord-chat-hover); }
     .msg-avatar {
-      width: 40px; height: 40px; border-radius: 50%; background: var(--discord-blurple);
-      display: flex; align-items: center; justify-content: center; font-weight: 700; color: #fff; flex-shrink: 0;
+      width: 38px; height: 38px; border-radius: 50%; background: var(--discord-blurple);
+      display: flex; align-items: center; justify-content: center; font-weight: 700; color: #fff; flex-shrink: 0; font-size: 0.85rem;
     }
-    .msg-content-col { display: flex; flex-direction: column; gap: 0.25rem; flex: 1; }
-    .msg-meta { display: flex; align-items: baseline; gap: 0.5rem; }
-    .author-name { font-size: 0.92rem; font-weight: 600; color: var(--discord-header); }
-    .timestamp { font-size: 0.72rem; color: var(--discord-text-muted); }
-    .msg-text { font-size: 0.94rem; color: var(--discord-text); line-height: 1.45; word-break: break-word; }
-    .msg-gif-wrap { border-radius: 8px; overflow: hidden; max-width: 280px; margin-top: 0.3rem; }
+    .msg-content-col { display: flex; flex-direction: column; gap: 0.2rem; flex: 1; min-width: 0; }
+    .msg-meta { display: flex; align-items: baseline; gap: 0.45rem; flex-wrap: wrap; }
+    .author-name { font-size: 0.9rem; font-weight: 600; color: var(--discord-header); }
+    .timestamp { font-size: 0.7rem; color: var(--discord-text-muted); }
+    .msg-text { font-size: 0.92rem; color: var(--discord-text); line-height: 1.45; word-break: break-word; }
+    .msg-gif-wrap { border-radius: 8px; overflow: hidden; max-width: min(260px, 80vw); margin-top: 0.3rem; }
     .msg-gif-wrap img { width: 100%; height: auto; display: block; border-radius: 8px; }
 
     /* System Join / Leave Cards */
     .system-event-row {
-      display: flex; align-items: center; gap: 0.6rem; font-size: 0.88rem;
-      padding: 0.3rem 0.5rem; color: var(--discord-text-muted);
+      display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem;
+      padding: 0.25rem 0.4rem; color: var(--discord-text-muted);
     }
     .system-event-row.join { color: var(--discord-green); }
     .system-event-row.leave { color: var(--discord-red); }
 
     /* Typing Bar */
     .typing-status-row {
-      height: 22px; padding: 0 1rem; font-size: 0.75rem; color: var(--discord-text-muted);
-      font-weight: 600; display: flex; align-items: center;
+      height: 20px; padding: 0 0.75rem; font-size: 0.72rem; color: var(--discord-text-muted);
+      font-weight: 600; display: flex; align-items: center; flex-shrink: 0;
     }
 
     /* Composer Dock */
-    .composer-wrapper { padding: 0 1rem 1.4rem; position: relative; }
+    .composer-wrapper { padding: 0 0.75rem calc(0.75rem + env(safe-area-inset-bottom, 0px)); position: relative; flex-shrink: 0; }
     .composer-inner {
       background: var(--discord-input); border-radius: 8px; display: flex; align-items: center;
-      padding: 0.2rem 0.75rem; gap: 0.5rem;
+      padding: 0.2rem 0.5rem; gap: 0.35rem;
     }
     .composer-input {
-      flex: 1; background: transparent; border: none; outline: none; padding: 0.7rem 0.2rem;
-      color: var(--discord-header); font-size: 0.94rem;
+      flex: 1; background: transparent; border: none; outline: none; padding: 0.65rem 0.3rem;
+      color: var(--discord-header); font-size: 0.92rem; min-width: 0;
     }
     .composer-btn {
       background: transparent; border: none; color: #b5bac1; cursor: pointer;
-      font-size: 1.25rem; padding: 0.3rem; border-radius: 4px; transition: color 0.15s;
+      font-size: 1.25rem; padding: 0.35rem; border-radius: 4px; display: flex; align-items: center; justify-content: center;
     }
     .composer-btn:hover { color: var(--discord-header); }
 
     /* Popovers (GIF & Emoji Pickers) */
     .discord-popover {
-      position: absolute; bottom: 75px; right: 1rem; width: 340px; background: var(--discord-sidebar);
-      border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); border: 1px solid var(--discord-border);
-      display: none; flex-direction: column; z-index: 50; overflow: hidden;
+      position: absolute; bottom: 65px; right: 0.75rem; width: min(340px, calc(100vw - 1.5rem));
+      background: var(--discord-sidebar); border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+      border: 1px solid var(--discord-border); display: none; flex-direction: column; z-index: 60; overflow: hidden;
     }
     .discord-popover.open { display: flex; }
     .popover-header {
-      padding: 0.75rem 1rem; border-bottom: 1px solid var(--discord-border);
+      padding: 0.65rem 0.85rem; border-bottom: 1px solid var(--discord-border);
       display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; font-weight: 700;
     }
-    .popover-body { max-height: 240px; overflow-y: auto; padding: 0.75rem; }
+    .popover-body { max-height: 220px; overflow-y: auto; padding: 0.65rem; }
 
     /* Emojis Grid with Categories */
-    .emoji-section-label { font-size: 0.72rem; text-transform: uppercase; font-weight: 700; color: var(--discord-text-muted); margin: 0.4rem 0 0.2rem; }
-    .emoji-grid-wrap { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+    .emoji-section-label { font-size: 0.7rem; text-transform: uppercase; font-weight: 700; color: var(--discord-text-muted); margin: 0.4rem 0 0.2rem; }
+    .emoji-grid-wrap { display: grid; grid-template-columns: repeat(auto-fill, minmax(32px, 1fr)); gap: 4px; }
     .emoji-btn {
-      background: transparent; border: none; cursor: pointer; font-size: 1.25rem; padding: 4px;
-      border-radius: 4px; transition: background 0.1s, transform 0.1s;
+      background: transparent; border: none; cursor: pointer; font-size: 1.25rem; padding: 4px 2px;
+      border-radius: 4px; display: flex; align-items: center; justify-content: center;
     }
-    .emoji-btn:hover { background: rgba(255,255,255,0.08); transform: scale(1.2); }
+    .emoji-btn:active { background: rgba(255,255,255,0.1); transform: scale(1.15); }
 
     /* GIF Grid */
     .gif-grid-wrap { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
     .gif-cell { border-radius: 6px; overflow: hidden; cursor: pointer; aspect-ratio: 16/9; background: var(--discord-darkest); }
-    .gif-cell img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.2s; }
-    .gif-cell:hover img { transform: scale(1.05); }
+    .gif-cell img { width: 100%; height: 100%; object-fit: cover; }
 
-    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar { width: 4px; }
     ::-webkit-scrollbar-thumb { background: #1a1b1e; border-radius: 4px; }
+
+    /* ========================================================
+       MOBILE RESPONSIVE BREAKPOINT (Portrait & Phone Screens)
+       ======================================================== */
+    @media (max-width: 768px) {
+      .mobile-menu-btn { display: inline-flex; }
+      
+      /* Make entire sidebar container a slide-out drawer */
+      .sidebar-wrapper {
+        position: fixed; top: 0; bottom: 0; left: 0;
+        transform: translateX(-100%);
+        box-shadow: 4px 0 20px rgba(0,0,0,0.6);
+      }
+      .sidebar-wrapper.open {
+        transform: translateX(0);
+      }
+
+      .discord-sidebar {
+        width: min(240px, calc(100vw - 72px));
+      }
+
+      .chat-topbar {
+        padding-left: 0.5rem;
+      }
+
+      .chat-feed {
+        padding: 0.6rem 0.5rem;
+        gap: 0.75rem;
+      }
+
+      .msg-avatar {
+        width: 34px; height: 34px; font-size: 0.78rem;
+      }
+
+      .composer-wrapper {
+        padding: 0 0.5rem calc(0.5rem + env(safe-area-inset-bottom, 0px));
+      }
+    }
+
+    /* Landscape Mode adjustments for mobile devices */
+    @media (max-height: 500px) and (orientation: landscape) {
+      .sidebar-wrapper {
+        position: fixed; top: 0; bottom: 0; left: 0; transform: translateX(-100%);
+      }
+      .sidebar-wrapper.open { transform: translateX(0); }
+      .mobile-menu-btn { display: inline-flex; }
+      .chat-topbar { height: 40px; }
+      .user-footer { height: 44px; }
+      .composer-wrapper { padding-bottom: 0.4rem; }
+      .popover-body { max-height: 150px; }
+    }
   </style>
 </head>
 <body>
@@ -218,7 +303,7 @@
   <!-- Discord Onboarding Modal -->
   <div id="loginOverlay">
     <div class="discord-auth-card">
-      <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">💬</div>
+      <div style="font-size: 2.2rem; margin-bottom: 0.5rem;">💬</div>
       <h2>Welcome Back!</h2>
       <p>Enter your username to connect to the CSC 423 Discord Hub.</p>
       <input type="text" id="usernameInput" class="discord-input-field" placeholder="Username (e.g. Jason)..." autocomplete="off" />
@@ -228,80 +313,85 @@
 
   <div class="discord-app">
     
-    <!-- Leftmost Server Rail -->
-    <div class="server-rail">
-      <div class="server-icon active" title="CSC 423 Networks Server">423</div>
-      <div class="rail-separator"></div>
-      <div class="server-icon" title="Direct Messages">@</div>
-    </div>
+    <!-- Tap-outside backdrop for mobile drawer -->
+    <div id="sidebarBackdrop" class="sidebar-backdrop" onclick="toggleMobileSidebar(false)"></div>
 
-    <!-- Sidebar: Channels & DMs -->
-    <aside class="discord-sidebar">
-      <header class="sidebar-header">
-        <span>CSC 423 Server</span>
-        <span style="font-size: 0.8rem; color: var(--discord-text-muted);">v2.4</span>
-      </header>
-
-      <div class="channels-scroll">
-        <!-- Text Channels -->
-        <div>
-          <div class="category-title">Text Channels</div>
-          <ul class="channel-list">
-            <li id="chan-all" class="channel-item active" onclick="switchTarget('all', 'general', false)">
-              <div class="channel-left">
-                <span class="channel-prefix">#</span>
-                <span>general</span>
-              </div>
-            </li>
-          </ul>
-        </div>
-
-        <!-- Direct Messages Section -->
-        <div>
-          <div class="category-title">
-            <span>Direct Messages</span>
-            <span id="userCount" style="font-size: 0.75rem;">0</span>
-          </div>
-          <ul id="userList" class="channel-list"></ul>
-        </div>
+    <!-- Unified Slide-out Sidebar Wrapper (Rail + Channel Nav) -->
+    <div id="sidebarWrapper" class="sidebar-wrapper">
+      
+      <!-- Leftmost Server Rail -->
+      <div class="server-rail">
+        <div class="server-icon active" title="CSC 423 Networks Server">423</div>
+        <div class="rail-separator"></div>
+        <div class="server-icon" title="Direct Messages">@</div>
       </div>
 
-      <!-- Bottom User Panel -->
-      <footer class="user-footer">
-        <div class="profile-info">
-          <div class="user-avatar-wrap">
-            <div id="myAvatar" class="avatar">U</div>
-            <div class="status-dot-mini"></div>
+      <!-- Channel & DM Navigation Sidebar -->
+      <aside class="discord-sidebar">
+        <header class="sidebar-header">
+          <span>CSC 423 Server</span>
+          <span style="font-size: 0.8rem; color: var(--discord-text-muted);">v2.4</span>
+        </header>
+
+        <div class="channels-scroll">
+          <div>
+            <div class="category-title">Text Channels</div>
+            <ul class="channel-list">
+              <li id="chan-all" class="channel-item active" onclick="switchTarget('all', 'general', false)">
+                <div class="channel-left">
+                  <span class="channel-prefix">#</span>
+                  <span>general</span>
+                </div>
+              </li>
+            </ul>
           </div>
-          <div class="profile-names">
-            <span id="myUsernameDisplay" class="name">Guest</span>
-            <span class="tag">#0423</span>
+
+          <div>
+            <div class="category-title">
+              <span>Direct Messages</span>
+              <span id="userCount" style="font-size: 0.75rem;">0</span>
+            </div>
+            <ul id="userList" class="channel-list"></ul>
           </div>
         </div>
-      </footer>
-    </aside>
+
+        <footer class="user-footer">
+          <div class="profile-info">
+            <div class="user-avatar-wrap">
+              <div id="myAvatar" class="avatar">U</div>
+              <div class="status-dot-mini"></div>
+            </div>
+            <div class="profile-names">
+              <span id="myUsernameDisplay" class="name">Guest</span>
+              <span class="tag">#0423</span>
+            </div>
+          </div>
+        </footer>
+      </aside>
+
+    </div>
 
     <!-- Main Message Center -->
     <main class="discord-main">
       <header class="chat-topbar">
-        <div class="topbar-info">
-          <span id="topbarPrefix" class="channel-prefix">#</span>
-          <span id="activeTargetTitle">general</span>
+        <div class="topbar-info-group">
+          <!-- Mobile Menu Toggle Button -->
+          <button class="mobile-menu-btn" title="Open Menu" onclick="toggleMobileSidebar(true)">☰</button>
+          <div class="topbar-info">
+            <span id="topbarPrefix" class="channel-prefix">#</span>
+            <span id="activeTargetTitle">general</span>
+          </div>
         </div>
         <div id="socketBadge" class="socket-status-pill offline">
           <span id="socketStatusText">Disconnected</span>
         </div>
       </header>
 
-      <!-- Message History Viewport -->
       <section id="chatFeed" class="chat-feed"></section>
 
-      <!-- Discord Typing Bar -->
       <div id="typingBar" class="typing-status-row"></div>
 
-      <!-- Input Bar & Trays -->
       <div class="composer-wrapper">
-        <!-- Emoji Popover -->
         <div id="emojiPopover" class="discord-popover">
           <div class="popover-header">
             <span>Select Emoji</span>
@@ -310,7 +400,6 @@
           <div id="emojiContainer" class="popover-body"></div>
         </div>
 
-        <!-- GIF Popover -->
         <div id="gifPopover" class="discord-popover">
           <div class="popover-header">
             <span>Select Tenor GIF</span>
@@ -334,12 +423,10 @@
   <script>
     let socket = null;
     let myUsername = "";
-    let activeTarget = "all"; // "all" for group or target username for DM
+    let activeTarget = "all";
     let typingTimer = null;
 
-    // Local in-memory conversation storage
     const conversations = { "all": [] };
-    // Notification Tracker: { "Username": count }
     const unreadCounts = {};
 
     const chatFeed = document.getElementById("chatFeed");
@@ -353,8 +440,9 @@
     const socketStatusText = document.getElementById("socketStatusText");
     const emojiPopover = document.getElementById("emojiPopover");
     const gifPopover = document.getElementById("gifPopover");
+    const sidebarWrapper = document.getElementById("sidebarWrapper");
+    const sidebarBackdrop = document.getElementById("sidebarBackdrop");
 
-    // Google Keyboard Emoji Catalog (Categorized)
     const emojiCategories = {
       "Smileys & Emotion": [
         "😀","😃","😄","😁","😆","😅","😂","🤣","🥲","🥹","😊","😇",
@@ -377,7 +465,6 @@
       ]
     };
 
-    // Curated GIF catalog
     const gifUrls = [
       "https://media.giphy.com/media/3o7TKSjRrfIPjeiVyM/giphy.gif",
       "https://media.giphy.com/media/26AHONQ79FdWZhAI0/giphy.gif",
@@ -393,7 +480,6 @@
       "https://media.giphy.com/media/citBl9yPwnUOs/giphy.gif"
     ];
 
-    // Build Emoji Tray
     const emojiContainer = document.getElementById("emojiContainer");
     for (const [cat, emojis] of Object.entries(emojiCategories)) {
       const title = document.createElement("div");
@@ -414,7 +500,6 @@
       emojiContainer.appendChild(grid);
     }
 
-    // Build GIF Tray
     const gifContainer = document.getElementById("gifContainer");
     gifUrls.forEach(url => {
       const cell = document.createElement("div");
@@ -423,6 +508,12 @@
       cell.onclick = () => sendMediaPayload("gif", url);
       gifContainer.appendChild(cell);
     });
+
+    function toggleMobileSidebar(force) {
+      const isOpen = typeof force === "boolean" ? force : !sidebarWrapper.classList.contains("open");
+      sidebarWrapper.classList.toggle("open", isOpen);
+      sidebarBackdrop.classList.toggle("active", isOpen);
+    }
 
     function toggleEmojiPicker(force) {
       gifPopover.classList.remove("open");
@@ -450,22 +541,22 @@
       topbarPrefix.textContent = isDM ? "@" : "#";
       chatInput.placeholder = isDM ? `Message @${titleText}` : `Message #${titleText}`;
 
-      // Reset unread notifications for this target
       if (unreadCounts[id]) {
         unreadCounts[id] = 0;
         updateUserListUI();
       }
 
-      // Sidebar item active highlighting
       document.querySelectorAll(".channel-item").forEach(el => el.classList.remove("active"));
       const activeEl = id === "all" ? document.getElementById("chan-all") : document.getElementById(`dm-${id}`);
       if (activeEl) activeEl.classList.add("active");
 
-      // Render conversation stream
       chatFeed.innerHTML = "";
       if (!conversations[activeTarget]) conversations[activeTarget] = [];
       conversations[activeTarget].forEach(msg => appendMessageToFeed(msg));
       typingBar.textContent = "";
+
+      // On mobile, close drawer automatically when a channel is chosen
+      toggleMobileSidebar(false);
     }
 
     function joinChat() {
@@ -498,14 +589,12 @@
           payload = { type: "message", target: "all", sender: "Unknown", content: event.data, kind: "text" };
         }
 
-        // 1. Presence List Updates
         if (payload.type === "userlist") {
           window.lastKnownUsers = payload.users || [];
           updateUserListUI();
           return;
         }
 
-        // 2. Typing Indicators
         if (payload.type === "typing") {
           if ((activeTarget === "all" && payload.target === "all") || (activeTarget === payload.sender && payload.target === myUsername)) {
             typingBar.textContent = `${payload.sender} is typing...`;
@@ -515,7 +604,6 @@
           return;
         }
 
-        // 3. System Events (Join & Leave notices)
         if (payload.type === "system") {
           conversations["all"].push(payload);
           if (activeTarget === "all") {
@@ -524,18 +612,15 @@
           return;
         }
 
-        // 4. Chat Messages (Group & DM)
         const storageKey = payload.target === "all" ? "all" : (payload.sender === myUsername ? payload.target : payload.sender);
         if (!conversations[storageKey]) conversations[storageKey] = [];
         conversations[storageKey].push(payload);
 
-        // Manage Unread Notifications if message is not in current active view
         if (storageKey !== activeTarget && payload.sender !== myUsername) {
           unreadCounts[storageKey] = (unreadCounts[storageKey] || 0) + 1;
           updateUserListUI();
         }
 
-        // If currently in this conversation, render directly
         if (storageKey === activeTarget) {
           appendMessageToFeed(payload);
         }
@@ -594,7 +679,6 @@
     function appendMessageToFeed(payload) {
       const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-      // Join / Leave Banner
       if (payload.type === "system") {
         const div = document.createElement("div");
         const isJoin = payload.event === "join";
@@ -605,9 +689,7 @@
           <span style="font-size:0.7rem;opacity:0.6;margin-left:auto;">${time}</span>
         `;
         chatFeed.appendChild(div);
-      } 
-      // Standard Chat Bubble
-      else {
+      } else {
         const row = document.createElement("div");
         row.className = "msg-group";
 
